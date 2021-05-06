@@ -1,0 +1,57 @@
+Question 1:
+a. Think about what could be going wrong with our calculation. Think about a better way to evaluate this data. 
+
+Answer: I think the error in your calculation was that you didn't take into account the outliers in the order_amount column. As, the order_amount is showing us proper results, there is no need to multiply the values to the 'total_items' column, as it is already done. Moreover, there are some duplicates in 'created_at' column, which was not considered. Because of that, we need to remove 'created_at' duplicates and drop outliers from 'order_amount' column.
+
+b. What metric would you report for this dataset?
+ 
+Code : Q1 = np.percentile(df.order_amount, 25, interpolation = 'midpoint') 
+Q3 = np.percentile(df.order_amount, 75, interpolation = 'midpoint') 
+IQR = Q3 - Q1
+low_lim = Q1- 1.5 * IQR
+up_lim = Q3 + 1.5 * IQR
+print(len(df))
+df = df.drop(df[(df.order_amount<low_lim) | (df.order_amount>up_lim)].index)
+
+Answer:  So, we need to take the dataset at which there is not gonna be any outliers.  Firstly, we need to consider that, one person take the same amount of order in particular shop and in particular time and because of that, we need to remove it. Moreover, in the values of order_amount column, there are some outliers which give us abnormal average order value. So, we need to consider interquartile range and get rid of data that is giving us not proper result. After that, we should get the sum of the values in 'order_amount' column, which will show the overall order value in that month and get the sum of orders in the cleaned dataset. Next, we should divide the sum of the values of 'order_amount' column to the sum of the values of overall orders, which will give us the result of average order value.
+
+c. What is its value?
+
+Code: df.order_amount.mean()
+
+Answer:  From the calculations that is made in part b, we can get the result of average order value, that is equal to 293.71$. 
+
+Question 2:
+a. How many orders were shipped by Speedy Express in total?
+
+--1st query
+select count(*) as order_num from orders
+join Shippers using (ShipperID)
+group by ShipperID
+having ShipperName = 'Speedy Express'
+
+Answer: 54
+
+b. What is the last name of the employee with the most orders?
+
+-- 2nd query
+Select LastName from Employees
+where employeeID =  (SELECT employeeID FROM orders
+group by employeeID
+order by count(*) desc limit 1)
+
+Answer: Peacock
+
+c. What product was ordered the most by customers in Germany?
+
+--3rd query
+select ProductName from (select sum(Quantity) as frequency,ProductName from orderDetails
+join Products using (ProductID)
+join Orders using (OrderID)
+join Customers using (CustomerID)
+where country = 'Germany'
+group by ProductName
+order by frequency desc
+limit 1)
+
+Answer: Boston Crab Meat
